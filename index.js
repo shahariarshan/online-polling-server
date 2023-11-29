@@ -35,6 +35,7 @@ async function run() {
     const surveyCollections = client.db("surveyDB").collection("survey")
     const usersCollections = client.db("surveyDB").collection("users")
     const reviewCollections = client.db('surveyDB').collection('reviews')
+    const paymentCollections = client.db('surveyDB').collection('payments')
 
     // like and dislike count 
     app.get('/api/like/count', (req, res) => {
@@ -111,6 +112,16 @@ async function run() {
       }
       next();
     }
+    const verifySurveyor = async (req, res, next) => {
+      const email = req.decoded.email;
+      const query = { email: email };
+      const user = await usersCollections.findOne(query);
+      const isAdmin = user?.role === 'isSurveyor';
+      if (!isSurveyor) {
+        return res.status(403).send({ message: 'forbidden access' });
+      }
+      next();
+    }
 
 
 
@@ -178,17 +189,15 @@ async function run() {
 
     app.get('/users/admin/:email', async (req, res) => {
       const adminEmail = req.params.email
-      // if (adminEmail !== req.decoded.email) {
-      //     return res.status(403).send({ message: 'forbidden access' })
-      // }
+   
       const query = { email: adminEmail };
       const user = await usersCollections.findOne(query)
       let admin = false
       if (user) {
         admin = user?.role === 'admin';
-        surveyor = user?.role === 'surveyor'
+       
       }
-      res.send({ admin, surveyor })
+      res.send({ admin })
     })
 
     app.patch('/users/admin/:id', async (req, res) => {
@@ -254,6 +263,18 @@ app.get('/payments/:email', verifyToken, async (req, res) => {
   const result = await paymentCollections.find(query).toArray()
   res.send(result)
 })
+
+
+ app.post('/payments', async (req, res) => {
+            const payment = req.body
+            const paymentResult = await paymentCollections.insertOne(payment)
+
+          
+            console.log('payment info', payment);
+          
+            res.send({ paymentResult })
+        })
+
 
 
 
