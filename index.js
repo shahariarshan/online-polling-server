@@ -157,7 +157,7 @@ async function run() {
         $set: {
           category: item.category,
           title: item.title,
-          expireDate: item.price,
+          expireDate: item.expireDate,
           description: item.description,
           options: item.options
         }
